@@ -1,48 +1,81 @@
-import { createRootRoute, createRouter, createRoute,  } from '@tanstack/react-router'
-import LoginPage from '@/pages/auth/LoginPage'
-import RegisterPage from '@/pages/auth/RegisterPage'
-import LandingPage from '@/pages/LandingPage'
+import { createRootRoute, createRouter, createRoute } from '@tanstack/react-router';
+import LoginPage from '@/pages/auth/LoginPage';
+import RegisterPage from '@/pages/auth/RegisterPage';
+import LandingPage from '@/pages/LandingPage';
 import DashboardPage from '@/pages/home/Dashboard';
-import CoursesPage from '@/pages/courses/CoursesPage'
-import CourseDetailPage from '@/pages/courses/CourseDetailPage';
-import LessonWithCodePage from '@/pages/courses/lessons/LessonWithCodePage';
-import { ProtectedLayout } from '@/components/auth/ProtectedLayout';
-import ModuleLessonsPage from '@/pages/courses/modules/ModuleLessonsPage';
-import HelpPage from './pages/home/help'
-import ProfilePage from './pages/profile/profile'
+import HelpPage from '@/pages/home/help';
+import ProfilePage from '@/pages/profile/profile';
+import CoursesPage from '@/pages/courses/CoursesPage';
+import CourseDetailPage from "./pages/courses/CourseDetailPage";
+import ModuleLessonsPage from "./pages/courses/modules/ModuleLessonsPage";
+import LessonWithCodePage from "./pages/courses/lessons/LessonWithCodePage";
+import { ProtectedLayout } from '@/components/auth/ProtectedLayout'; // Ensure this is correctly imported
 
-const rootRoute = createRootRoute()
+const rootRoute = createRootRoute();
 
 const landingRoute = createRoute({
   getParentRoute: () => rootRoute,
   path: '/',
-  component: () => <LandingPage />,
-})
+  component: LandingPage,
+});
 
 const loginRoute = createRoute({
   getParentRoute: () => rootRoute,
   path : '/login',
-  component: () => <LoginPage />,
-})
+  component: LoginPage,
+});
 const registerRoute = createRoute({
   getParentRoute: () => rootRoute,
   path : '/register',
-  component: () => <RegisterPage />,
-})
+  component: RegisterPage,
+});
 
 const protectedRoute = createRoute({
   getParentRoute: () => rootRoute,
   id: 'protected',
-  path: '',
   beforeLoad: ProtectedLayout.beforeLoad,
   component: ProtectedLayout.component,
-})
+});
 
 const homeRoute = createRoute({
   getParentRoute: () => protectedRoute,
   path: '/home',
-  component: () => <DashboardPage />,
-})
+  component: DashboardPage,
+});
+
+// Renamed for clarity: this is for the list of courses
+const coursesListRoute = createRoute({
+    getParentRoute: () => protectedRoute,
+    path: '/courses', // This path will render CoursesPage
+    component: CoursesPage,
+});
+
+// Course Detail Page route, now a direct child of protectedRoute
+const courseDetailRoute = createRoute({
+  getParentRoute: () => protectedRoute, // Parent is now protectedRoute
+  path: "/courses/$courseId",          // Full path specified
+  component: CourseDetailPage,
+});
+
+// Exam Interface Page route, now a direct child of protectedRoute
+const examInterfaceRoute = createRoute({
+  getParentRoute: () => protectedRoute, // Parent is now protectedRoute
+  path: "/courses/$courseId/exam-interface", // Full path specified
+  component: LessonWithCodePage,
+});
+
+const moduleLessonsRoute = createRoute({
+  getParentRoute: () => protectedRoute,
+  path: '/module/$moduleId',
+  component: ModuleLessonsPage,
+});
+
+const lessonWithCodeRoute = createRoute({
+  getParentRoute: () => protectedRoute,
+  path: "/lessons/$lessonId",
+  component: LessonWithCodePage,
+});
+
 
 const helpRoute = createRoute({
   getParentRoute: () => protectedRoute,
@@ -50,59 +83,28 @@ const helpRoute = createRoute({
   component: () => <HelpPage />,
 })
 
-const coursesRoute = createRoute({
-    getParentRoute: () => protectedRoute,
-    path: '/courses',
-    component: () => <CoursesPage />,
-})
-
-const courseDetailRoute = createRoute({
-  getParentRoute: () => protectedRoute,
-  path: '/courses/$courseId',
-  component: () => <CourseDetailPage />,
-});
-
-const LessonWithCodeRoute = createRoute({
-  getParentRoute: () => protectedRoute,
-  path: '/lessons/$lessonId',
-  component: () => <LessonWithCodePage />,
-});
-
-const moduleLessonsRoute = createRoute({
-  getParentRoute: () => protectedRoute,
-  path: '/module/$moduleId',
-  component: () => <ModuleLessonsPage />,
-})
-
-const ExamRoute = createRoute({
-    path: '/courses/$courseId/exam',
-    getParentRoute: () => protectedRoute,
-    component: LessonWithCodePage
-})
-
 const ProfileRoute = createRoute({
-  getParentRoute: () => protectedRoute,
+  getParentRoute: () => rootRoute,
   path: '/profile',
   component: () => <ProfilePage />,
 })
 
-// Create the route tree using your routes
 const routeTree = rootRoute.addChildren([
   landingRoute,
   loginRoute,
   registerRoute,
+  helpRoute,
   protectedRoute.addChildren([
     homeRoute,
-    helpRoute,
-    coursesRoute,
-    courseDetailRoute,
-    LessonWithCodeRoute,
-    moduleLessonsRoute,
-    ExamRoute,
     ProfileRoute,
+    coursesListRoute,     // Renders CoursesPage at /courses
+    courseDetailRoute,    // Renders CourseDetailPage at /courses/$courseId
+    examInterfaceRoute,   // Renders LessonWithCodePage at /courses/$courseId/exam-interface
+    moduleLessonsRoute,
+    lessonWithCodeRoute,
   ])
-])
+]);
 
-const router = createRouter({ routeTree })
+const router = createRouter({ routeTree });
 
-export { router, courseDetailRoute, LessonWithCodePage, moduleLessonsRoute, LessonWithCodeRoute, ExamRoute };
+export { router, courseDetailRoute, moduleLessonsRoute, lessonWithCodeRoute, examInterfaceRoute, coursesListRoute };
